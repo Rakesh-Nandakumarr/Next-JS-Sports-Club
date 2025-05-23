@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { Calendar, Tag, ChevronRight, ChevronLeft } from "lucide-react";
 import MainLayout from "@/app/main-layout";
+import ClientSideSearch from "./search-component";
 
 export const dynamic = "force-dynamic"; // Disable static rendering since we need fresh data
 
@@ -29,19 +30,19 @@ export const metadata: Metadata = {
 const BLOGS_PER_PAGE = 9;
 
 // Function to get blog posts with pagination
-async function getBlogs(page = 1, searchQuery = '') {
+async function getBlogs(page = 1, searchQuery = "") {
   try {
     await connectDB();
 
     // Create filter for published blogs
     const filter: any = { status: "published" };
-    
+
     // Add search query filter if provided
     if (searchQuery) {
       filter.$or = [
-        { title: { $regex: searchQuery, $options: 'i' } },
-        { content: { $regex: searchQuery, $options: 'i' } },
-        { tags: { $in: [new RegExp(searchQuery, 'i')] } }
+        { title: { $regex: searchQuery, $options: "i" } },
+        { content: { $regex: searchQuery, $options: "i" } },
+        { tags: { $in: [new RegExp(searchQuery, "i")] } },
       ];
     }
 
@@ -94,7 +95,7 @@ export default async function BlogsPage({
       <div className="bg-gradient-to-b from-primary/10 to-background py-16 mb-8">
         <div className="container mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-            Blog
+            Blogs
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Explore our latest articles, news, and insights.
@@ -111,17 +112,10 @@ export default async function BlogsPage({
             </p>
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {blogs.map((blog) => (
-                <BlogCard key={blog._id} blog={blog} />
-              ))}
-            </div>
-
-            {pagination.totalPages > 1 && (
-              <Pagination pagination={pagination} />
-            )}
-          </>
+          <ClientSideSearch
+            initialBlogs={blogs}
+            initialPagination={pagination}
+          />
         )}
       </div>
     </MainLayout>
@@ -139,9 +133,7 @@ function BlogCard({ blog }: { blog: any }) {
           <div className="relative aspect-video w-full">
             {" "}
             <img
-              src={
-                blog.img
-              }
+              src={blog.img}
               alt={blog.title}
               className="object-cover transition-transform hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
